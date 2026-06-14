@@ -40,12 +40,18 @@ const MAP = Object.freeze({
   'B': 9, 'G': 9, 'K': 9,
 });
 
+// Umlauts expand to their two-letter components, each counted separately.
+//   Ä = AE → A(2) + E(5) = 7
+//   Ö = OE → O(7) + E(5) = 12
+//   Ü = UE → U(6) + E(5) = 11
+//   ß = SS → S(3) + S(3) = 6
+// Accented base letters (É, È, etc.) resolve to the plain letter.
 const UMLAUTS = Object.freeze({
-  'Ä': 'A', 'Å': 'A', 'Æ': 'A',
-  'Ö': 'O', 'Œ': 'O',
-  'Ü': 'U',
+  'Ä': 'AE', 'Å': 'A', 'Æ': 'AE',
+  'Ö': 'OE', 'Œ': 'OE',
+  'Ü': 'UE',
   'É': 'E', 'È': 'E', 'Ë': 'E', 'Ê': 'E',
-  'ß': 'S',
+  'ß': 'SS',
 });
 
 // Reverse mapping: value → letters
@@ -61,14 +67,12 @@ const VALUE_GROUPS = Object.freeze({
   9: ['B', 'G', 'K'],
 });
 
-// Precomputed map with umlauts resolved
-const RESOLVED = (() => {
-  const r = Object.assign({}, MAP);
-  for (const [umlaut, base] of Object.entries(UMLAUTS)) {
-    if (MAP[base] !== undefined) r[umlaut] = MAP[base];
-  }
-  return Object.freeze(r);
-})();
+// A character is an umlaut if its resolved form is longer than 1 char
+const UMLAUT_CHARS = new Set(
+  Object.entries(UMLAUTS)
+    .filter(([, v]) => v.length > 1)
+    .map(([k]) => k)
+);
 
 // ── Core API ─────────────────────────────────────────────────────────
 
@@ -89,15 +93,30 @@ function value(text) {
 
   for (const ch of text) {
     const upper = ch.toUpperCase();
-    const resolved = UMLAUTS[upper] || upper;
-    const val = RESOLVED[resolved];
+    // Look up original char first (for ß which toUpperCase converts to SS)
+    const expansion = UMLAUTS[ch] || UMLAUTS[upper];
 
-    if (val !== undefined) {
-      letters.push({ char: ch, value: val });
-      total += val;
-      counted++;
+    if (expansion !== undefined && expansion.length > 1) {
+      // Umlaut / ß — expand into component letters
+      for (const sub of expansion) {
+        const val = MAP[sub];
+        if (val !== undefined) {
+          letters.push({ char: ch, sub: sub, value: val, expanded: true });
+          total += val;
+          counted++;
+        }
+      }
     } else {
-      letters.push({ char: ch, value: 0 });
+      // Single character
+      const resolved = expansion || upper;
+      const val = MAP[resolved];
+      if (val !== undefined) {
+        letters.push({ char: ch, value: val });
+        total += val;
+        counted++;
+      } else {
+        letters.push({ char: ch, value: 0 });
+      }
     }
   }
 
@@ -111,13 +130,16 @@ function value(text) {
  * @returns {string}
  */
 function normalize(text) {
-  return [...text]
-    .map(ch => {
-      const u = ch.toUpperCase();
-      return UMLAUTS[u] || u;
-    })
-    .filter(ch => RESOLVED[ch] !== undefined)
-    .join('');
+  let out = '';
+  for (const ch of text) {
+    const u = ch.toUpperCase();
+    const expansion = UMLAUTS[ch] || UMLAUTS[u];
+    const resolved = expansion || u;
+    for (const sub of resolved) {
+      if (MAP[sub] !== undefined) out += sub;
+    }
+  }
+  return out;
 }
 
 /**
@@ -129,7 +151,10 @@ function normalize(text) {
 function hasValue(ch) {
   if (typeof ch !== 'string' || ch.length !== 1) return false;
   const u = ch.toUpperCase();
-  return RESOLVED[UMLAUTS[u] || u] !== undefined;
+  const expansion = UMLAUTS[ch] || UMLAUTS[u];
+  if (expansion && expansion.length > 1) return true;  // umlaut → has components
+  const resolved = expansion || u;
+  return MAP[resolved] !== undefined;
 }
 
 /**
@@ -141,7 +166,15 @@ function hasValue(ch) {
 function charValue(ch) {
   if (typeof ch !== 'string' || ch.length !== 1) return undefined;
   const u = ch.toUpperCase();
-  return RESOLVED[UMLAUTS[u] || u];
+  const expansion = UMLAUTS[ch] || UMLAUTS[u];
+  if (expansion && expansion.length > 1) {
+    // For umlauts, return the sum of component values
+    let sum = 0;
+    for (const sub of expansion) sum += MAP[sub] || 0;
+    return sum;
+  }
+  const resolved = expansion || u;
+  return MAP[resolved];
 }
 
 /**
@@ -176,7 +209,11 @@ function printResult(result, verbose) {
     console.log('  Breakdown:');
     for (const l of result.letters) {
       if (l.value > 0) {
-        console.log(`    ${l.char} → ${l.value}`);
+        if (l.expanded) {
+          console.log(`    ${l.char} → ${l.sub}=${l.value} (as ${l.sub})`);
+        } else {
+          console.log(`    ${l.char} → ${l.value}`);
+        }
       } else {
         console.log(`    ${l.char === ' ' ? '(space)' : l.char} → — (ignored)`);
       }

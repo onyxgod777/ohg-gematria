@@ -46,7 +46,11 @@ gematria.mapping();                // full value→letters table
 | **8** | F, Q |
 | **9** | B, G, K |
 
-Umlauts (Ä→A, Ö→O, Ü→U, ß→S) are resolved automatically.
+Umlauts expand to their two-letter components:
+- **Ä** → AE → **A(2) + E(5) = 7**
+- **Ö** → OE → **O(7) + E(5) = 12**
+- **Ü** → UE → **U(6) + E(5) = 11**
+- **ß** → SS → **S(3) + S(3) = 6**
 
 ## Zero dependencies
 
