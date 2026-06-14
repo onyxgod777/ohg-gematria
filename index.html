@@ -92,12 +92,23 @@
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    margin-bottom: 14px;
+    margin-bottom: 4px;
   }
   .result-top .label { font-size: 13px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
   .result-top .number { font-size: 44px; font-weight: 700; color: var(--gold); font-variant-numeric: tabular-nums; }
   .result-top .number.zero { color: var(--text-dim); opacity: .3; }
   .result-top .sub { font-size: 14px; color: var(--text-dim); margin-left: 6px; }
+
+  .result-mid {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 14px;
+  }
+  .result-mid .item { }
+  .result-mid .item .ilabel { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; opacity: .5; }
+  .result-mid .item .ivalue { font-size: 18px; font-weight: 700; color: var(--gold-dim); font-variant-numeric: tabular-nums; }
+  .result-mid .item .ivalue.zero { color: var(--text-dim); opacity: .3; }
+  .result-mid .sep { width: 1px; background: var(--border); }
 
   .breakdown {
     display: flex;
@@ -169,6 +180,7 @@
     .chart { gap: 3px; padding: 8px; }
     .cell .val { font-size: 15px; }
     .result-top .number { font-size: 34px; }
+    .result-mid .item .ivalue { font-size: 15px; }
   }
 </style>
 </head>
@@ -193,6 +205,17 @@
         <span class="number zero" id="total">0</span>
         <span class="sub" id="count"></span>
       </span>
+    </div>
+    <div class="result-mid">
+      <div class="item">
+        <div class="ilabel">Sum of Digits</div>
+        <div class="ivalue zero" id="sumdigits">0</div>
+      </div>
+      <div class="sep"></div>
+      <div class="item">
+        <div class="ilabel">Decimal Parity</div>
+        <div class="ivalue zero" id="parity">0</div>
+      </div>
     </div>
     <div class="breakdown" id="breakdown">
       <span class="empty">Enter text to calculate</span>
@@ -241,6 +264,21 @@ const GROUPS = {
 const COLORS = ['c1','c2','c3','c4','c5','c6','c7','c8','c9'];
 const TILE = {1:'v1',2:'v2',3:'v3',4:'v4',5:'v5',6:'v6',7:'v7',8:'v8',9:'v9'};
 
+function decimalParity(n) {
+  while (n >= 10) {
+    let s = 0;
+    while (n > 0) { s += n % 10; n = Math.floor(n / 10); }
+    n = s;
+  }
+  return n;
+}
+
+function sumDigits(n) {
+  let s = 0;
+  while (n > 0) { s += n % 10; n = Math.floor(n / 10); }
+  return s;
+}
+
 function calc(text) {
   const letters = [];
   let total = 0;
@@ -269,6 +307,8 @@ for (let v = 1; v <= 9; v++) {
 const IN = document.getElementById('input');
 const TOTAL = document.getElementById('total');
 const CNT = document.getElementById('count');
+const SUMD = document.getElementById('sumdigits');
+const PAR = document.getElementById('parity');
 const BD = document.getElementById('breakdown');
 
 function render() {
@@ -276,6 +316,14 @@ function render() {
   TOTAL.textContent = total;
   TOTAL.className = total > 0 ? 'number' : 'number zero';
   CNT.textContent = counted > 0 ? `(${counted} letters)` : '';
+
+  const sd = total > 0 ? sumDigits(total) : 0;
+  const dp = total > 0 ? decimalParity(total) : 0;
+  SUMD.textContent = sd;
+  SUMD.className = sd > 0 ? 'ivalue' : 'ivalue zero';
+  PAR.textContent = dp;
+  PAR.className = dp > 0 ? 'ivalue' : 'ivalue zero';
+
   BD.innerHTML = '';
   if (letters.length === 0) { BD.innerHTML = '<span class="empty">Enter text to calculate</span>'; return; }
   for (const l of letters) {

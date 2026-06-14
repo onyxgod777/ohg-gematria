@@ -41,6 +41,12 @@ console.log(r.total);         // 51
 console.log(r.letters[3]);    // { char:'Ö', sub:'O', value:7, expanded:true }
 console.log(r.letters[4]);    // { char:'Ö', sub:'E', value:5, expanded:true }
 
+// Decimal parity (digital root)
+gematria.decimalParity(21);   // 3  (2+1=3)
+gematria.decimalParity(51);   // 6  (5+1=6)
+gematria.sumDigits(51);       // 6  (same for this case)
+gematria.decimalParity(137);  // 2  (1+3+7=11 → 1+1=2)
+
 // Utilities
 gematria.normalize('Schöpfung');  // 'SCHOEPFUNG'
 gematria.normalize('straße');     // 'STRASSE'
@@ -51,6 +57,21 @@ gematria.charValue('Ö');          // 12 (OE → 7+5)
 gematria.charValue('Ü');          // 11 (UE → 6+5)
 gematria.charValue('ß');          // 6  (SS → 3+3)
 gematria.mapping();               // full value→letters table
+```
+
+### CLI Output
+
+```
+$ node gematria.js GIZEH
+
+════════════════════════════════════════
+  Old High German Gematria (CR 127/128)
+════════════════════════════════════════
+
+  Total: 21
+  Letters counted: 5
+  Sum of digits: 3
+  Decimal parity: 3
 ```
 
 ## Letter Mapping

@@ -203,6 +203,12 @@ function printResult(result, verbose) {
 
   console.log(`  Total: ${result.total}`);
   console.log(`  Letters counted: ${result.counted}`);
+
+  // Decimal parity
+  const sd = sumDigits(result.total);
+  const dp = decimalParity(result.total);
+  console.log(`  Sum of digits: ${sd}`);
+  console.log(`  Decimal parity: ${dp}`);
   console.log('');
 
   if (verbose) {
@@ -294,7 +300,24 @@ function cli(args) {
 
 // ── Exports ──────────────────────────────────────────────────────────
 
-module.exports = { value, normalize, hasValue, charValue, mapping, MAP, VALUE_GROUPS };
+function decimalParity(n) {
+  if (typeof n !== 'number' || n <= 0) return 0;
+  while (n >= 10) {
+    let s = 0;
+    while (n > 0) { s += n % 10; n = Math.floor(n / 10); }
+    n = s;
+  }
+  return n;
+}
+
+function sumDigits(n) {
+  if (typeof n !== 'number' || n <= 0) return 0;
+  let s = 0;
+  while (n > 0) { s += n % 10; n = Math.floor(n / 10); }
+  return s;
+}
+
+module.exports = { value, normalize, hasValue, charValue, mapping, decimalParity, sumDigits, MAP, VALUE_GROUPS };
 
 // ── Run as CLI ───────────────────────────────────────────────────────
 
