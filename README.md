@@ -10,7 +10,6 @@ Features:
 - Real-time calculation as you type
 - Per-letter breakdown with expanded umlauts (dashed border)
 - Color-coded value groups
-- Constant comparison panel (φ, πᵴ, 1.52955347, 280, 7, 4/φ², c)
 - Preset buttons for known words
 
 ## CLI / API
