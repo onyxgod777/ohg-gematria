@@ -209,6 +209,22 @@ function printResult(result, verbose) {
   const dp = decimalParity(result.total);
   console.log(`  Sum of digits: ${sd}`);
   console.log(`  Decimal parity: ${dp}`);
+
+  // 37 / 3-fold / 666 detection
+  const t = result.total;
+  if (t > 0) {
+    if (t % 37 === 0) {
+      console.log(`  ${t} ÷ 37 = ${t / 37}`);
+    }
+    if (t >= 111 && t <= 999 && t % 111 === 0) {
+      const d = t / 111;
+      if (t === 666) {
+        console.log('  ✦ 666 — 37 × 18  (Number of the Beast)');
+      } else {
+        console.log(`  ${t} = 37 × ${3 * d} (triple ${d})`);
+      }
+    }
+  }
   console.log('');
 
   if (verbose) {
