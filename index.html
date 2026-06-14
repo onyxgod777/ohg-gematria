@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Old High German Gematria — CR 127/128</title>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #141820;
+    --card: #1a1f2a;
+    --border: #2a3040;
+    --gold: #d4a843;
+    --gold-dim: #a08030;
+    --text: #d0d4dd;
+    --text-dim: #687090;
+    --accent: #1e2535;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  .container { max-width: 680px; width: 100%; }
+
+  header {
+    text-align: center;
+    padding: 28px 0 18px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+  header h1 { font-size: 26px; color: var(--gold); font-weight: 600; }
+  header p { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
+
+  /* ── Chart ─────────────────────────────── */
+  .chart {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    gap: 5px;
+    background: var(--card);
+    border-radius: 10px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+  .cell {
+    text-align: center;
+    padding: 5px 2px;
+    border-radius: 6px;
+    background: var(--accent);
+    font-size: 11px;
+  }
+  .cell .val { font-size: 18px; font-weight: 700; display: block; margin-bottom: 1px; }
+  .cell .ltr { font-size: 9px; color: var(--text-dim); line-height: 1.3; }
+  .cell.c1 .val { color: #4fc3f7; } .cell.c2 .val { color: #81c784; }
+  .cell.c3 .val { color: #ffb74d; } .cell.c4 .val { color: #e57373; }
+  .cell.c5 .val { color: #ba68c8; } .cell.c6 .val { color: #4dd0e1; }
+  .cell.c7 .val { color: #fff176; } .cell.c8 .val { color: #f06292; }
+  .cell.c9 .val { color: #a1887f; }
+
+  /* ── Input ─────────────────────────────── */
+  .input-area { margin-bottom: 20px; }
+  textarea {
+    width: 100%;
+    padding: 12px 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 16px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 60px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  textarea:focus { border-color: var(--gold); }
+  textarea::placeholder { color: var(--text-dim); opacity: .5; }
+
+  /* ── Result ────────────────────────────── */
+  .result-card {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 18px 20px;
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+  .result-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 14px;
+  }
+  .result-top .label { font-size: 13px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+  .result-top .number { font-size: 44px; font-weight: 700; color: var(--gold); font-variant-numeric: tabular-nums; }
+  .result-top .number.zero { color: var(--text-dim); opacity: .3; }
+  .result-top .sub { font-size: 14px; color: var(--text-dim); margin-left: 6px; }
+
+  /* ── Breakdown tiles ───────────────────── */
+  .breakdown {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    min-height: 28px;
+  }
+  .tile {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: var(--accent);
+    border-radius: 5px;
+    padding: 3px 7px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid transparent;
+  }
+  .tile .ch { font-size: 14px; }
+  .tile .sep { font-size: 10px; color: var(--text-dim); }
+  .tile .num { font-size: 12px; }
+  .tile.ignored { opacity: .3; border-color: var(--border); }
+  .tile.ignored .num { display: none; }
+  .tile.ignored .sep { display: none; }
+  .tile.v1 { border-color: #4fc3f7; } .tile.v1 .num { color: #4fc3f7; }
+  .tile.v2 { border-color: #81c784; } .tile.v2 .num { color: #81c784; }
+  .tile.v3 { border-color: #ffb74d; } .tile.v3 .num { color: #ffb74d; }
+  .tile.v4 { border-color: #e57373; } .tile.v4 .num { color: #e57373; }
+  .tile.v5 { border-color: #ba68c8; } .tile.v5 .num { color: #ba68c8; }
+  .tile.v6 { border-color: #4dd0e1; } .tile.v6 .num { color: #4dd0e1; }
+  .tile.v7 { border-color: #fff176; } .tile.v7 .num { color: #fff176; }
+  .tile.v8 { border-color: #f06292; } .tile.v8 .num { color: #f06292; }
+  .tile.v9 { border-color: #a1887f; } .tile.v9 .num { color: #a1887f; }
+  .tile.exp { border-style: dashed; }
+  .tile .sub-label { font-size: 9px; color: var(--text-dim); opacity: .6; }
+
+  .empty { width: 100%; text-align: center; color: var(--text-dim); opacity: .4; font-size: 13px; padding: 6px 0; }
+
+  /* ── Presets ───────────────────────────── */
+  .presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 12px;
+  }
+  .preset-btn {
+    padding: 4px 11px;
+    background: var(--accent);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    color: var(--text-dim);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all .15s;
+    font-family: inherit;
+  }
+  .preset-btn:hover { border-color: var(--gold); color: var(--gold); background: var(--card); }
+
+  /* ── Summary ───────────────────────────── */
+  .summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+  .stat {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 10px;
+    background: var(--accent);
+    border-radius: 6px;
+    font-size: 12px;
+  }
+  .stat .sl { color: var(--text-dim); }
+  .stat .sv { font-weight: 600; color: var(--gold-dim); }
+
+  footer {
+    text-align: center;
+    padding: 16px 0 8px;
+    font-size: 11px;
+    color: var(--text-dim);
+    opacity: .5;
+  }
+  footer a { color: var(--gold-dim); text-decoration: none; }
+  footer a:hover { color: var(--gold); }
+
+  @media (max-width: 500px) {
+    .chart { gap: 3px; padding: 8px; }
+    .cell .val { font-size: 15px; }
+    .result-top .number { font-size: 34px; }
+    .summary { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>𐌾 Old High German Gematria</h1>
+    <p>Billy Meier Contact Reports 127 &amp; 128</p>
+  </header>
+
+  <!-- Chart -->
+  <div class="chart" id="chart"></div>
+
+  <!-- Input -->
+  <div class="input-area">
+    <textarea id="input" placeholder="Type a word or phrase…" autofocus></textarea>
+  </div>
+
+  <!-- Result -->
+  <div class="result-card" id="result">
+    <div class="result-top">
+      <span class="label">Gematria</span>
+      <span>
+        <span class="number zero" id="total">0</span>
+        <span class="sub" id="count"></span>
+      </span>
+    </div>
+    <div class="breakdown" id="breakdown">
+      <span class="empty">Enter text to calculate</span>
+    </div>
+    <div class="summary" id="summary"></div>
+  </div>
+
+  <!-- Presets -->
+  <div class="result-card" style="padding:14px 18px;">
+    <div style="font-size:13px;color:var(--text-dim);margin-bottom:8px;">Try:</div>
+    <div class="presets" id="presets"></div>
+  </div>
+
+  <footer>
+    Based on <a href="https://wiki.saalome.org/Billy_Meier/Science_and_Mathematics" target="_blank">CR 127/128</a>
+    · <a href="https://github.com/onyxgod777/ohg-gematria" target="_blank">Source</a>
+  </footer>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+//  Gematria Engine (same logic as gematria.js)
+// ══════════════════════════════════════════════════
+
+const MAP = {
+  'C':1, 'H':1, 'I':1, 'J':1, 'T':1, 'Y':1,
+  'A':2, 'R':2,
+  'S':3,
+  'M':4,
+  'D':5, 'E':5, 'L':5, 'N':5, 'Z':5,
+  'P':6, 'U':6, 'V':6, 'W':6, 'X':6,
+  'O':7,
+  'F':8, 'Q':8,
+  'B':9, 'G':9, 'K':9,
+};
+
+const UMLAUTS = {
+  'Ä': 'AE', 'Å': 'A', 'Æ': 'AE',
+  'Ö': 'OE', 'Œ': 'OE',
+  'Ü': 'UE',
+  'É': 'E', 'È': 'E', 'Ë': 'E', 'Ê': 'E',
+  'ß': 'SS',
+};
+
+const VALUE_GROUPS = {
+  1: ['C','H','I','J','T','Y'],
+  2: ['A','R'],
+  3: ['S'],
+  4: ['M'],
+  5: ['D','E','L','N','Z'],
+  6: ['P','U','V','W','X'],
+  7: ['O'],
+  8: ['F','Q'],
+  9: ['B','G','K'],
+};
+
+const COLORS = ['c1','c2','c3','c4','c5','c6','c7','c8','c9'];
+const VAL_COLORS = {
+  1:'v1',2:'v2',3:'v3',4:'v4',5:'v5',
+  6:'v6',7:'v7',8:'v8',9:'v9',
+};
+
+function calc(text) {
+  const letters = [];
+  let total = 0;
+
+  for (const ch of text) {
+    const upper = ch.toUpperCase();
+    const expansion = UMLAUTS[ch] || UMLAUTS[upper];
+
+    if (expansion && expansion.length > 1) {
+      // Umlaut / ß — expand
+      for (const sub of expansion) {
+        const val = MAP[sub];
+        if (val !== undefined) {
+          letters.push({ char: ch, sub, value: val, expanded: true, ignored: false });
+          total += val;
+        }
+      }
+    } else {
+      const resolved = expansion || upper;
+      const val = MAP[resolved];
+      if (val !== undefined) {
+        letters.push({ char: ch, value: val, expanded: false, ignored: false });
+        total += val;
+      } else {
+        letters.push({ char: ch, value: 0, expanded: false, ignored: true });
+      }
+    }
+  }
+
+  return { total, letters, counted: letters.filter(l => !l.ignored).length };
+}
+
+// ══════════════════════════════════════════════════
+//  Build chart
+// ══════════════════════════════════════════════════
+
+const chart = document.getElementById('chart');
+for (let v = 1; v <= 9; v++) {
+  const cell = document.createElement('div');
+  cell.className = `cell ${COLORS[v-1]}`;
+  cell.innerHTML = `<span class="val">${v}</span><span class="ltr">${VALUE_GROUPS[v].join(', ')}</span>`;
+  chart.appendChild(cell);
+}
+
+// ══════════════════════════════════════════════════
+//  Constants for summary
+// ══════════════════════════════════════════════════
+
+const CONSTANTS = [
+  { label: 'πᵴ (Golden Pi)',        value: 3.144605511,     intCheck: true },
+  { label: 'φ (Golden Ratio)',      value: 1.6180339887,    intCheck: true },
+  { label: '1.52955347',           value: 1.52955347,       intCheck: true },
+  { label: '280 (Elements)',       value: 280,              intCheck: false },
+  { label: '7 (Hyperspaces)',      value: 7,                intCheck: false },
+  { label: '4/φ²',                 value: 1.527864045,      intCheck: true },
+  { label: 'Speed of light (km/s)', value: 299792.48012,     intCheck: true },
+];
+
+// ══════════════════════════════════════════════════
+//  Render
+// ══════════════════════════════════════════════════
+
+const INPUT = document.getElementById('input');
+const TOTAL = document.getElementById('total');
+const COUNT = document.getElementById('count');
+const BREAKDOWN = document.getElementById('breakdown');
+const SUMMARY = document.getElementById('summary');
+const RESULT = document.getElementById('result');
+
+function render() {
+  const text = INPUT.value;
+  const { total, letters, counted } = calc(text);
+
+  // Total
+  TOTAL.textContent = total;
+  TOTAL.className = total > 0 ? 'number' : 'number zero';
+  COUNT.textContent = counted > 0 ? `(${counted} letters)` : '';
+
+  // Breakdown
+  BREAKDOWN.innerHTML = '';
+  if (letters.length === 0) {
+    BREAKDOWN.innerHTML = '<span class="empty">Enter text to calculate</span>';
+  } else {
+    for (const l of letters) {
+      const tile = document.createElement('span');
+      if (l.ignored) {
+        const display = l.char === ' ' ? '␣' : l.char;
+        tile.className = 'tile ignored';
+        tile.textContent = display;
+      } else if (l.expanded) {
+        tile.className = `tile ${VAL_COLORS[l.value]} exp`;
+        tile.innerHTML = `<span class="sub-label">${l.char}</span><span class="ch">${l.sub}</span><span class="sep">=</span><span class="num">${l.value}</span>`;
+      } else {
+        tile.className = `tile ${VAL_COLORS[l.value]}`;
+        tile.innerHTML = `<span class="ch">${l.char}</span><span class="sep">=</span><span class="num">${l.value}</span>`;
+      }
+      BREAKDOWN.appendChild(tile);
+    }
+  }
+
+  // Summary — constant comparisons
+  SUMMARY.innerHTML = '';
+  for (const c of CONSTANTS) {
+    const stat = document.createElement('div');
+    stat.className = 'stat';
+    const match = total > 0 && (
+      total === Math.round(c.value) ||
+      Math.abs(total / c.value - 1) < 0.005
+    );
+    stat.innerHTML = `<span class="sl">${c.label}</span><span class="sv" style="${match ? 'color:var(--gold)' : ''}">${c.value}${match ? ' ✓' : ''}</span>`;
+    SUMMARY.appendChild(stat);
+  }
+}
+
+// ══════════════════════════════════════════════════
+//  Presets
+// ══════════════════════════════════════════════════
+
+const PRESETS = [
+  'GIZEH', 'GIZA', 'PYRAMID', 'PHI',
+  'GOLDEN', 'PI', 'LICHT', 'ZEIT',
+  'SCHÖPFUNG', 'ELEMENTE', 'CHRONON', 'TACHYON',
+  'STRAHL', 'GEDANKEN', 'WAHRHEIT',
+];
+
+const presetsEl = document.getElementById('presets');
+for (const word of PRESETS) {
+  const btn = document.createElement('button');
+  btn.className = 'preset-btn';
+  btn.textContent = word;
+  btn.addEventListener('click', () => {
+    INPUT.value = word;
+    INPUT.focus();
+    render();
+  });
+  presetsEl.appendChild(btn);
+}
+
+INPUT.addEventListener('input', render);
+render();
+</script>
+
+</body>
+</html>

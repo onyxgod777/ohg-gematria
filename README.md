@@ -2,7 +2,18 @@
 
 A JavaScript Old High German Gematria calculator based on **Billy Meier Contact Reports 127 and 128** (Plejaren transmission via FIGU / Guido Moosbrugger).
 
-## Usage
+## Web UI
+
+Open [`index.html`](index.html) in any browser — no build step, no dependencies.
+
+Features:
+- Real-time calculation as you type
+- Per-letter breakdown with expanded umlauts (dashed border)
+- Color-coded value groups
+- Constant comparison panel (φ, πᵴ, 1.52955347, 280, 7, 4/φ², c)
+- Preset buttons for known words
+
+## CLI / API
 
 ### CLI
 
